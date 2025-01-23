@@ -455,4 +455,8 @@ public class NotesList extends ListActivity {
         );
         adapter.swapCursor(cursor);
     }
+
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+    String fontSize = prefs.getString("font_size", "14");
+    listView.setTextSize(Float.parseFloat(fontSize));
 }
