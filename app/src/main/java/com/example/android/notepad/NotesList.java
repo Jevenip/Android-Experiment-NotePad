@@ -429,4 +429,30 @@ public class NotesList extends ListActivity {
             startActivity(new Intent(Intent.ACTION_EDIT, uri));
         }
     }
+
+    SearchView searchView = findViewById(R.id.searchView);
+    searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        @Override
+        public boolean onQueryTextSubmit(String query) {
+            searchNotes(query);
+            return true;
+        }
+
+        @Override
+        public boolean onQueryTextChange(String newText) {
+            searchNotes(newText);
+            return true;
+        }
+    });
+
+    private void searchNotes(String query) {
+        Cursor cursor = getContentResolver().query(
+                NotePad.Notes.CONTENT_URI,
+                null,
+                NotePad.Notes.COLUMN_NAME_TITLE + " LIKE ? OR " + NotePad.Notes.COLUMN_NAME_NOTE + " LIKE ?",
+                new String[]{"%" + query + "%", "%" + query + "%"},
+                null
+        );
+        adapter.swapCursor(cursor);
+    }
 }
