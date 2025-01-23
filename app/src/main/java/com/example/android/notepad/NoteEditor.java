@@ -613,4 +613,25 @@ public class NoteEditor extends Activity {
             mText.setText("");
         }
     }
+
+    Spinner categorySpinner = findViewById(R.id.category_spinner);
+    ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+            R.array.note_categories, android.R.layout.simple_spinner_item);
+    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+    categorySpinner.setAdapter(adapter);
+
+    ContentValues values = new ContentValues();
+    values.put(NotePad.Notes.COLUMN_NAME_CATEGORY, categorySpinner.getSelectedItem().toString());
+    getContentResolver().update(mUri, values, null, null);
+
+    private void filterByCategory(String category) {
+        Cursor cursor = getContentResolver().query(
+                NotePad.Notes.CONTENT_URI,
+                null,
+                NotePad.Notes.COLUMN_NAME_CATEGORY + "=?",
+                new String[]{category},
+                null
+        );
+        adapter.swapCursor(cursor);
+    }
 }
