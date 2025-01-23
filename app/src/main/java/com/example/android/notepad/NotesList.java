@@ -68,73 +68,37 @@ public class NotesList extends ListActivity {
     /**
      * onCreate is called when Android starts this Activity from scratch.
      */
+
+    private SimpleCursorAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.note_list);
 
-        // The user does not need to hold down the key to use menu shortcuts.
-        setDefaultKeyMode(DEFAULT_KEYS_SHORTCUT);
+        String[] fromColumns = {NotePad.Notes.COLUMN_NAME_TITLE, NotePad.Notes.COLUMN_NAME_MODIFIED_DATE};
+        int[] toViews = {R.id.text1, R.id.timestamp};
 
-        /* If no data is given in the Intent that started this Activity, then this Activity
-         * was started when the intent filter matched a MAIN action. We should use the default
-         * provider URI.
-         */
-        // Gets the intent that started this Activity.
-        Intent intent = getIntent();
-
-        // If there is no data associated with the Intent, sets the data to the default URI, which
-        // accesses a list of notes.
-        if (intent.getData() == null) {
-            intent.setData(NotePad.Notes.CONTENT_URI);
-        }
-
-        /*
-         * Sets the callback for context menu activation for the ListView. The listener is set
-         * to be this Activity. The effect is that context menus are enabled for items in the
-         * ListView, and the context menu is handled by a method in NotesList.
-         */
-        getListView().setOnCreateContextMenuListener(this);
-
-        /* Performs a managed query. The Activity handles closing and requerying the cursor
-         * when needed.
-         *
-         * Please see the introductory note about performing provider operations on the UI thread.
-         */
-        Cursor cursor = managedQuery(
-            getIntent().getData(),            // Use the default content URI for the provider.
-            PROJECTION,                       // Return the note ID and title for each note.
-            null,                             // No where clause, return all records.
-            null,                             // No where clause, therefore no where column values.
-            NotePad.Notes.DEFAULT_SORT_ORDER  // Use the default sort order.
+        adapter = new SimpleCursorAdapter(
+                this,
+                R.layout.note_list_item,
+                null,
+                fromColumns,
+                toViews,
+                0
         );
 
-        /*
-         * The following two arrays create a "map" between columns in the cursor and view IDs
-         * for items in the ListView. Each element in the dataColumns array represents
-         * a column name; each element in the viewID array represents the ID of a View.
-         * The SimpleCursorAdapter maps them in ascending order to determine where each column
-         * value will appear in the ListView.
-         */
+        adapter.setViewBinder((view, cursor, columnIndex) -> {
+            if (view.getId() == R.id.timestamp) {
+                long timestamp = cursor.getLong(columnIndex);
+                String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(new Date(timestamp));
+                ((TextView) view).setText(formattedDate);
+                return true;
+            }
+            return false;
+        });
 
-        // The names of the cursor columns to display in the view, initialized to the title column
-        String[] dataColumns = { NotePad.Notes.COLUMN_NAME_TITLE } ;
-
-        // The view IDs that will display the cursor columns, initialized to the TextView in
-        // noteslist_item.xml
-        int[] viewIDs = { android.R.id.text1 };
-
-        // Creates the backing adapter for the ListView.
-        SimpleCursorAdapter adapter
-            = new SimpleCursorAdapter(
-                      this,                             // The Context for the ListView
-                      R.layout.noteslist_item,          // Points to the XML for a list item
-                      cursor,                           // The cursor to get items from
-                      dataColumns,
-                      viewIDs
-              );
-
-        // Sets the ListView's adapter to be the cursor adapter that was just created.
         setListAdapter(adapter);
+        getLoaderManager().initLoader(0, null, this);
     }
 
     /**
